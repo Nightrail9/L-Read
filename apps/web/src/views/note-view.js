@@ -1,4 +1,5 @@
 import {
+    highlightCodeInElement,
     markdownLibReady,
     renderMathInElement,
     renderMarkdownSafe,
@@ -249,7 +250,8 @@ export function renderNoteCards({
         `;
     }
 
-    state.activeNoteId = notes[0]?.id || null;
+    const hasActive = notes.some((item) => String(item.id) === String(state.activeNoteId));
+    state.activeNoteId = hasActive ? state.activeNoteId : (notes[0]?.id || null);
     setupIcons();
 }
 
@@ -320,6 +322,7 @@ function renderPreviewCurrent() {
     titleEl.innerText = note.title || "笔记预览";
     metaEl.innerText = `${note.category || "GENERAL"} · ${safeIndex + 1} / ${total}`;
     contentEl.innerHTML = renderMarkdownContent(getNoteText(note), "note-preview-text");
+    highlightCodeInElement(contentEl);
     renderMathInElement(contentEl);
 
     const canSwitch = total > 1;
@@ -482,6 +485,7 @@ function renderEditPreview() {
 
     const sourceRatio = getScrollRatio(textarea);
     previewEl.innerHTML = renderMarkdownContent(textarea.value || "", "note-edit-preview-text");
+    highlightCodeInElement(previewEl);
     renderMathInElement(previewEl);
     setScrollRatio(previewEl, sourceRatio);
 

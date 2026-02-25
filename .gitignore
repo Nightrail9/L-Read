@@ -1,4 +1,5 @@
 data/
+apps/data/
 apps/api/.env
 .vscode/
 __pycache__/

@@ -1,4 +1,26 @@
 let markedConfigured = false;
+let hljsConfigured = false;
+
+const autoDetectLanguages = [
+    "javascript",
+    "typescript",
+    "python",
+    "java",
+    "c",
+    "cpp",
+    "csharp",
+    "go",
+    "rust",
+    "json",
+    "bash",
+    "powershell",
+    "yaml",
+    "toml",
+    "xml",
+    "css",
+    "sql",
+    "markdown",
+];
 
 function extractMathSegments(markdown) {
     const source = String(markdown || "");
@@ -93,6 +115,67 @@ export function renderMarkdownSafe(markdown) {
     } catch {
         return "";
     }
+}
+
+export function highlightCodeInElement(container) {
+    if (!container) {
+        return false;
+    }
+    const highlighter = window.hljs;
+    if (!highlighter || typeof highlighter.highlightElement !== "function") {
+        return false;
+    }
+
+    if (!hljsConfigured && typeof highlighter.configure === "function") {
+        highlighter.configure({
+            ignoreUnescapedHTML: true,
+        });
+        hljsConfigured = true;
+    }
+
+    const detectSubset = autoDetectLanguages.filter((lang) =>
+        typeof highlighter.getLanguage === "function" ? Boolean(highlighter.getLanguage(lang)) : true
+    );
+
+    const codeBlocks = container.querySelectorAll("pre code");
+    codeBlocks.forEach((codeBlock) => {
+        const languageClass = Array.from(codeBlock.classList).find((name) =>
+            /^language-/.test(name)
+        );
+        if (languageClass) {
+            try {
+                highlighter.highlightElement(codeBlock);
+            } catch {
+                // ignore highlight errors for malformed snippets
+            }
+            return;
+        }
+
+        try {
+            const source = String(codeBlock.textContent || "");
+            const result = typeof highlighter.highlightAuto === "function"
+                ? highlighter.highlightAuto(source, detectSubset)
+                : null;
+
+            if (result && Number(result.relevance) > 0) {
+                codeBlock.classList.add("hljs");
+                if (result.language) {
+                    codeBlock.classList.add(`language-${result.language}`);
+                }
+                codeBlock.innerHTML = result.value;
+                return;
+            }
+
+            codeBlock.classList.add("hljs", "language-plaintext");
+            if (typeof highlighter.highlight === "function") {
+                const plain = highlighter.highlight(source, { language: "plaintext" });
+                codeBlock.innerHTML = plain.value;
+            }
+        } catch {
+            // ignore highlight errors for malformed snippets
+        }
+    });
+    return codeBlocks.length > 0;
 }
 
 export function renderMathInElement(container) {

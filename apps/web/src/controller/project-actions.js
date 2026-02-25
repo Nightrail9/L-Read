@@ -19,6 +19,68 @@ export function createProjectActions({
     fetchModuleNotes,
     moduleKeyByTitle,
 }) {
+    let readingNotesPollTimer = null;
+    let readingNotesPollInFlight = false;
+
+    function stopReadingNotesPolling() {
+        if (readingNotesPollTimer) {
+            clearInterval(readingNotesPollTimer);
+            readingNotesPollTimer = null;
+        }
+        readingNotesPollInFlight = false;
+    }
+
+    function startReadingNotesPolling(projectId) {
+        stopReadingNotesPolling();
+
+        const pollOnce = async () => {
+            if (readingNotesPollInFlight) {
+                return;
+            }
+            if (state.currentView !== "reading" || String(state.activeProjectId) !== String(projectId)) {
+                stopReadingNotesPolling();
+                return;
+            }
+
+            const project = state.projects.find((item) => String(item.id) === String(projectId));
+            if (!project) {
+                stopReadingNotesPolling();
+                return;
+            }
+
+            const isRunningProject = project.status === "running";
+            const isActiveRunProject =
+                state.activeRun?.status === "running"
+                && String(state.activeRun.projectId) === String(project.id);
+            if (!isRunningProject && !isActiveRunProject) {
+                stopReadingNotesPolling();
+                return;
+            }
+
+            readingNotesPollInFlight = true;
+            try {
+                const previousCount = Array.isArray(project.notes) ? project.notes.length : 0;
+                await loadProjectNotes(project);
+                const nextCount = Array.isArray(project.notes) ? project.notes.length : 0;
+
+                if (nextCount !== previousCount) {
+                    saveState();
+                    refreshProjectPanels();
+                    renderReadingCards(project);
+                }
+            } catch (error) {
+                console.error("增量加载笔记失败:", error);
+            } finally {
+                readingNotesPollInFlight = false;
+            }
+        };
+
+        void pollOnce();
+        readingNotesPollTimer = setInterval(() => {
+            void pollOnce();
+        }, 3000);
+    }
+
     async function loadProjectNotes(project) {
         const backendJobId = resolveBackendJobId(project);
         if (!backendJobId) {
@@ -189,6 +251,7 @@ export function createProjectActions({
         if (!project) {
             return;
         }
+        stopReadingNotesPolling();
         state.activeProjectId = project.id;
 
         project.lastAccessed = Date.now();
@@ -210,6 +273,10 @@ export function createProjectActions({
             renderReadingFailedState(setupIcons, project.error || "任务执行失败，请稍后重试");
         } else {
             renderReadingEmptyState(setupIcons);
+        }
+
+        if (project.status === "running") {
+            startReadingNotesPolling(project.id);
         }
     }
 

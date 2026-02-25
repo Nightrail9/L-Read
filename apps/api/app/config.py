@@ -1,4 +1,6 @@
 import os
+import shutil
+import sqlite3
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -7,20 +9,61 @@ from dotenv import load_dotenv
 def _detect_root_dir() -> Path:
     current = Path(__file__).resolve()
     for parent in current.parents:
-        if (parent / "AGENTS.md").exists():
+        has_apps_layout = (parent / "apps" / "api").exists() and (
+            parent / "apps" / "web"
+        ).exists()
+        has_root_markers = (
+            (parent / "start.bat").exists()
+            or (parent / "README.md").exists()
+            or (parent / ".git").exists()
+        )
+        if has_apps_layout and has_root_markers:
             return parent
-    return current.parents[2]
+    if len(current.parents) > 3:
+        return current.parents[3]
+    return current.parents[-1]
+
+
+def _resolve_data_dir(root_dir: Path) -> Path:
+    raw = os.getenv("APP_DATA_DIR", "").strip()
+    if not raw:
+        return root_dir / "data"
+
+    candidate = Path(raw).expanduser()
+    if not candidate.is_absolute():
+        candidate = root_dir / candidate
+    return candidate.resolve()
+
+
+def _dir_has_files(path: Path) -> bool:
+    return path.exists() and path.is_dir() and any(path.iterdir())
+
+
+def _db_has_jobs(path: Path) -> bool:
+    if not path.exists() or not path.is_file():
+        return False
+    try:
+        conn = sqlite3.connect(path)
+        try:
+            cur = conn.execute("SELECT COUNT(1) FROM jobs")
+            row = cur.fetchone()
+            return bool(row and int(row[0]) > 0)
+        finally:
+            conn.close()
+    except Exception:
+        return False
 
 
 ROOT_DIR = _detect_root_dir()
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 FRONTEND_DIR = ROOT_DIR / "apps" / "web"
-DATA_DIR = ROOT_DIR / "data"
+load_dotenv(BACKEND_DIR / ".env")
+
+DATA_DIR = _resolve_data_dir(ROOT_DIR)
 JOBS_DIR = DATA_DIR / "jobs"
 DB_PATH = DATA_DIR / "app.db"
 PROMPTS_JSON_FILE = BACKEND_DIR / "app" / "prompts" / "modules.json"
-
-load_dotenv(BACKEND_DIR / ".env")
+LEGACY_DATA_DIR = ROOT_DIR / "apps" / "data"
 
 API_HOST = "127.0.0.1"
 API_PORT = int(os.getenv("BACKEND_PORT", "8000"))
@@ -132,5 +175,35 @@ ALLOWED_EXTS = {
 
 
 def ensure_dirs() -> None:
+    if os.getenv("APP_DATA_DIR", "").strip():
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        JOBS_DIR.mkdir(parents=True, exist_ok=True)
+        return
+
+    if DATA_DIR.resolve() != LEGACY_DATA_DIR.resolve():
+        legacy_db = LEGACY_DATA_DIR / "app.db"
+        legacy_jobs = LEGACY_DATA_DIR / "jobs"
+        target_has_data = _db_has_jobs(DB_PATH) or _dir_has_files(JOBS_DIR)
+        legacy_has_data = _db_has_jobs(legacy_db) or _dir_has_files(legacy_jobs)
+
+        if legacy_has_data and not target_has_data:
+            DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+            if legacy_db.exists() and not DB_PATH.exists():
+                shutil.move(str(legacy_db), str(DB_PATH))
+
+            if legacy_jobs.exists():
+                if JOBS_DIR.exists() and not _dir_has_files(JOBS_DIR):
+                    shutil.rmtree(JOBS_DIR, ignore_errors=True)
+                if not JOBS_DIR.exists():
+                    shutil.move(str(legacy_jobs), str(JOBS_DIR))
+
+            print(f"[data] migrated legacy data dir: {LEGACY_DATA_DIR} -> {DATA_DIR}")
+        elif legacy_has_data and target_has_data:
+            print(
+                "[data] both data roots have content; using primary data dir "
+                f"{DATA_DIR} and keeping legacy dir {LEGACY_DATA_DIR} unchanged"
+            )
+
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     JOBS_DIR.mkdir(parents=True, exist_ok=True)

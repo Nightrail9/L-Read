@@ -9,7 +9,8 @@
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <script src="tailwindcss.js"></script>
     <script src="lucide.js"></script>
-    <link rel="stylesheet" href="style.css?v=20260225-3">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/vs.min.css">
+    <link rel="stylesheet" href="style.css?v=20260225-4">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 </head>
 <body class="bg-white text-[#37352F] antialiased overflow-hidden h-screen flex flex-col font-sans text-sm">
@@ -315,19 +316,96 @@
             </div>
         </div>
 
-        <div id="doc-modal" class="hidden bg-white rounded-2xl shadow-2xl border border-[#E9E9E7] w-full max-w-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0">
+        <div id="doc-modal" class="hidden bg-white rounded-2xl shadow-2xl border border-[#E9E9E7] w-full max-w-3xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0">
             <div class="px-6 py-5 border-b border-[#E9E9E7] flex justify-between items-center bg-[#F7F7F5]/80">
-                <h3 class="font-bold text-sm text-[#37352F]">使用指南</h3>
+                <div>
+                    <h3 class="font-bold text-sm text-[#37352F]">使用文档</h3>
+                    <p class="text-[11px] text-[#6B7280] mt-1">从上传文献到产出笔记的完整流程</p>
+                </div>
                 <button class="close-modal p-1.5 hover:bg-white rounded-lg"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
-            <div class="p-8 max-h-[70vh] overflow-y-auto space-y-6 text-[#37352f]/80 text-[13px] leading-relaxed">
-                <section>
-                    <h4 class="font-bold text-black mb-2 flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4 text-yellow-500"></i> 解析逻辑</h4>
-                    <p>系统支持 PDF 上传，并将根据配置的模型对文献进行多维度分析。关联代码仓库（GitHub URL）将触发源码共读模式，系统会自动将论文理论与项目实现进行对齐。</p>
+            <div class="p-6 md:p-8 max-h-[76vh] overflow-y-auto custom-scrollbar space-y-6 text-[#37352f]/85 text-[13px] leading-relaxed">
+                <section class="rounded-2xl border border-[#E8EEF9] bg-gradient-to-br from-[#F6FAFF] via-white to-[#EEF4FF] p-4 md:p-5">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-[#2563EB] text-white flex items-center justify-center flex-shrink-0">
+                            <i data-lucide="rocket" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-[#111827]">快速开始（1 分钟）</h4>
+                            <p class="mt-1 text-[#334155]">先在「模型配置」中完成连通性检测，再上传 PDF，点击“开始分析文献”，系统将自动生成多维笔记。</p>
+                            <div class="mt-3 flex flex-wrap gap-2 text-[11px]">
+                                <span class="px-2 py-1 rounded-full bg-white border border-[#DCE6F8] text-[#1D4ED8] font-semibold">步骤 1：配置模型</span>
+                                <span class="px-2 py-1 rounded-full bg-white border border-[#DCE6F8] text-[#1D4ED8] font-semibold">步骤 2：上传论文</span>
+                                <span class="px-2 py-1 rounded-full bg-white border border-[#DCE6F8] text-[#1D4ED8] font-semibold">步骤 3：查看笔记</span>
+                            </div>
+                        </div>
+                    </div>
                 </section>
+
                 <section>
-                    <h4 class="font-bold text-black mb-2">关于多维度笔记</h4>
-                    <p>一次解析会根据文献内容生成多个侧重点不同的笔记（如：技术架构、实验方案、核心公式、关联代码）。您可以通过详情页左侧边栏快速切换。</p>
+                    <h4 class="font-bold text-[#111827] mb-3 flex items-center gap-2">
+                        <i data-lucide="workflow" class="w-4 h-4 text-[#0F766E]"></i>
+                        标准任务流程
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <article class="rounded-xl border border-[#E5E7EB] bg-[#FCFCFB] p-4">
+                            <p class="text-[11px] font-bold tracking-wide text-[#0F766E]">STAGE 01</p>
+                            <p class="mt-1 text-sm font-semibold text-[#111827]">创建任务并上传 PDF</p>
+                            <p class="mt-2 text-[12px] text-[#4B5563]">支持拖拽上传，文件建议不超过 50MB。</p>
+                        </article>
+                        <article class="rounded-xl border border-[#E5E7EB] bg-[#FCFCFB] p-4">
+                            <p class="text-[11px] font-bold tracking-wide text-[#0F766E]">STAGE 02</p>
+                            <p class="mt-1 text-sm font-semibold text-[#111827]">可选关联代码仓库</p>
+                            <p class="mt-2 text-[12px] text-[#4B5563]">支持 GitHub URL 或本地路径，系统自动构建索引后进行对齐分析。</p>
+                        </article>
+                        <article class="rounded-xl border border-[#E5E7EB] bg-[#FCFCFB] p-4">
+                            <p class="text-[11px] font-bold tracking-wide text-[#0F766E]">STAGE 03</p>
+                            <p class="mt-1 text-sm font-semibold text-[#111827]">阅读与编辑笔记</p>
+                            <p class="mt-2 text-[12px] text-[#4B5563]">支持预览、编辑、复制与下载 Markdown，并可单模块重试。</p>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="rounded-xl border border-[#E5E7EB] bg-white p-4 md:p-5">
+                    <h4 class="font-bold text-[#111827] mb-2 flex items-center gap-2">
+                        <i data-lucide="refresh-cw" class="w-4 h-4 text-[#B45309]"></i>
+                        项目列表与同步说明
+                    </h4>
+                    <ul class="space-y-2 text-[12px] text-[#4B5563]">
+                        <li>项目列表优先展示后端任务记录；页面刷新或重新打开时会自动拉取后端数据。</li>
+                        <li>点击「同步项目」会触发目录与数据库的重新对齐，适用于迁移或补录历史任务。</li>
+                        <li>若同步后仍无数据，请先确认后端服务正常运行，再检查数据目录与任务产物是否存在。</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h4 class="font-bold text-[#111827] mb-3 flex items-center gap-2">
+                        <i data-lucide="help-circle" class="w-4 h-4 text-[#7C3AED]"></i>
+                        常见问题
+                    </h4>
+                    <div class="space-y-2">
+                        <details class="group rounded-lg border border-[#E5E7EB] bg-white px-3 py-2">
+                            <summary class="cursor-pointer text-[12px] font-semibold text-[#1F2937] list-none flex items-center justify-between">
+                                为什么“开始分析文献”按钮是灰色？
+                                <i data-lucide="chevron-down" class="w-4 h-4 text-[#6B7280]"></i>
+                            </summary>
+                            <p class="mt-2 text-[12px] text-[#4B5563]">通常是未上传 PDF、已有任务正在运行，或系统仍在处理中。上传文件后按钮会自动激活。</p>
+                        </details>
+                        <details class="group rounded-lg border border-[#E5E7EB] bg-white px-3 py-2">
+                            <summary class="cursor-pointer text-[12px] font-semibold text-[#1F2937] list-none flex items-center justify-between">
+                                模块部分失败后怎么处理？
+                                <i data-lucide="chevron-down" class="w-4 h-4 text-[#6B7280]"></i>
+                            </summary>
+                            <p class="mt-2 text-[12px] text-[#4B5563]">在项目列表点击“重试”，系统会优先补跑失败模块并保留已成功结果。</p>
+                        </details>
+                        <details class="group rounded-lg border border-[#E5E7EB] bg-white px-3 py-2">
+                            <summary class="cursor-pointer text-[12px] font-semibold text-[#1F2937] list-none flex items-center justify-between">
+                                笔记可以导出或二次编辑吗？
+                                <i data-lucide="chevron-down" class="w-4 h-4 text-[#6B7280]"></i>
+                            </summary>
+                            <p class="mt-2 text-[12px] text-[#4B5563]">支持。你可以在阅读页复制 Markdown、下载本地文件，或在编辑器中修改后直接保存回后端产物。</p>
+                        </details>
+                    </div>
                 </section>
             </div>
         </div>
@@ -456,6 +534,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.7/dist/purify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/highlight.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
     <script type="module" src="src/main.js"></script>

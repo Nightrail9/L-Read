@@ -40,6 +40,11 @@ export function createBootstrapLifecycle({
         const jumpToRunBtn = document.getElementById("global-task-jump");
         if (jumpToRunBtn) {
             jumpToRunBtn.addEventListener("click", () => {
+                if (state.activeRun?.status === "running") {
+                    switchView("new-task");
+                    return;
+                }
+
                 const activeRunProjectId = resolveActiveRunProjectId();
                 if (activeRunProjectId) {
                     void selectProject(activeRunProjectId);

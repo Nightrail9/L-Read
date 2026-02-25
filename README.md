@@ -27,10 +27,42 @@
 | 数学渲染 | KaTeX |
 | Markdown | Marked.js + DOMPurify |
 
+## 📁 项目结构
+
+```
+L-Read/
+├── apps/
+│   ├── api/                    # 后端 (FastAPI)
+│   │   ├── app/
+│   │   │   ├── main.py         # 应用入口
+│   │   │   ├── routes/         # API 路由
+│   │   │   ├── services/       # 业务逻辑（任务编排、仓库处理）
+│   │   │   ├── prompts/        # LLM 提示词模板
+│   │   │   └── db.py           # SQLite 数据库操作
+│   │   ├── requirements.txt
+│   │   └── .env.example
+│   └── web/                    # 前端 (原生 JS)
+│       ├── index.html
+│       ├── app.js              # 前端入口
+│       └── src/
+│           ├── api/            # HTTP 请求封装
+│           ├── controller/     # 页面控制器
+│           ├── views/          # 视图渲染
+│           ├── state/          # 状态管理
+│           └── ui/             # UI 组件
+├── data/                       # 运行时数据
+│   ├── app.db                  # SQLite 数据库
+│   └── jobs/                   # 任务产物目录
+├── scripts/
+│   └── smoke_check.py          # 集成冒烟测试
+├── env/                        # 本地 Python 解释器
+└── start.bat                   # 一键启动脚本
+```
+
 ## 📋 前置要求
 
 - **操作系统**：Windows（项目通过 `start.bat` 启动）
-- **Python 3.11+**：项目自带本地解释器 `env\python.exe`，也可使用系统 Python
+- **Python 3.11+**：项目已内置可用解释器与依赖环境（`env\python.exe`）
 - **Git**：如需克隆 GitHub 仓库，需要系统安装 Git
 - **MinerU Token**：用于 PDF 云端解析，需自行申请
 - **LLM API Key**：至少配置以下之一：
@@ -47,23 +79,13 @@ git clone https://github.com/Nightrail9/L-Read.git
 cd L-Read
 ```
 
-### 2. 安装 Python 依赖
-
-使用项目自带的本地解释器：
-
-```bash
-.\env\python.exe -m pip install -r apps\api\requirements.txt
-```
-
-> 如果使用系统 Python，请确保版本 >= 3.11，并将后续 `.env` 中的 `STARTUP_PYTHON_EXE` 指向对应路径。
-
-### 3. 创建环境配置文件
+### 2. 创建环境配置文件
 
 ```bash
 copy apps\api\.env.example apps\api\.env
 ```
 
-### 4. 编辑环境变量
+### 3. 编辑环境变量
 
 用文本编辑器打开 `apps\api\.env`，填写必要的密钥：
 
@@ -136,7 +158,7 @@ MINERU_DOWNLOAD_RETRIES=3              # 下载重试次数
 
 </details>
 
-### 5. 启动服务
+### 4. 启动服务
 
 双击运行项目根目录下的启动脚本：
 
@@ -163,90 +185,14 @@ start.bat
 
 然后在浏览器中访问 `http://127.0.0.1:8000`。
 
-## 📖 使用教程
-
-### 第一步：创建精读任务
-
-1. 打开浏览器访问 `http://127.0.0.1:8000/task`（启动后会自动打开）
-2. 点击上传区域，选择要精读的论文 PDF 文件
-3. （可选）填写论文配套代码仓库：
-   - **GitHub URL**：填入仓库地址，系统会自动克隆（支持代理配置）
-   - **本地路径**：填入本机已有的项目目录路径
-4. 点击开始分析
-
-### 第二步：等待处理
-
-系统会依次执行以下流程：
-
-1. **PDF 解析** — 将 PDF 上传至 MinerU 服务，提取文本和图片
-2. **仓库索引**（如已关联）— 克隆仓库并构建文件树、代码摘要
-3. **AI 分析** — 并行运行框架图解读、公式讲解、代码精读三个模块，完成后再运行导师模拟提问
-
-页面会实时显示各步骤的进度状态，全程无需手动干预。
-
-### 第三步：查看精读笔记
-
-1. 分析完成后，进入 **项目库**（`/projects`）页面
-2. 在列表中找到对应论文，点击进入详情页（`/projects/{id}`）
-3. 详情页以卡片形式展示四个分析模块的笔记：
-   - 点击卡片可预览完整笔记（支持 Markdown 渲染 + 数学公式）
-   - 点击编辑按钮可在线修改笔记内容（左右分栏实时预览）
-   - 支持上/下翻页快速切换不同模块
-
-### 第四步：管理与导出
-
-- **标签分类** — 为论文添加分类标签（方法创新、理论分析、实验评估、工程实现、应用研究、综述调研）
-- **搜索筛选** — 在项目库中按关键词或标签快速检索
-- **打包下载** — 一键导出全部分析产物为 ZIP 压缩包
-- **失败重试** — 如果某个模块分析失败，支持单模块重新运行
-
-### LLM 配置切换
-
-系统支持在前端页面直接切换 LLM 配置，无需重启服务：
-
-1. 点击页面上的 LLM 设置按钮
-2. 选择提供商（GPT / Gemini / OpenAI 兼容）
-3. 填写 API Key、Base URL、模型名称
-4. 点击连通性测试，确认配置可用
-5. 保存后立即生效，后续任务将使用新配置
-
-## 📁 项目结构
-
-```
-L-Read/
-├── apps/
-│   ├── api/                    # 后端 (FastAPI)
-│   │   ├── app/
-│   │   │   ├── main.py         # 应用入口
-│   │   │   ├── routes/         # API 路由
-│   │   │   ├── services/       # 业务逻辑（任务编排、仓库处理）
-│   │   │   ├── prompts/        # LLM 提示词模板
-│   │   │   └── db.py           # SQLite 数据库操作
-│   │   ├── requirements.txt
-│   │   └── .env.example
-│   └── web/                    # 前端 (原生 JS)
-│       ├── index.html
-│       ├── app.js              # 前端入口
-│       └── src/
-│           ├── api/            # HTTP 请求封装
-│           ├── controller/     # 页面控制器
-│           ├── views/          # 视图渲染
-│           ├── state/          # 状态管理
-│           └── ui/             # UI 组件
-├── data/                       # 运行时数据
-│   ├── app.db                  # SQLite 数据库
-│   └── jobs/                   # 任务产物目录
-├── scripts/
-│   └── smoke_check.py          # 集成冒烟测试
-├── env/                        # 本地 Python 解释器
-└── start.bat                   # 一键启动脚本
-```
 
 ## ❓ 常见问题
 
 **Q: 启动时提示 "Missing packages"**
 
-运行以下命令安装依赖：
+一般情况下无需手动安装依赖（项目已内置所需环境和包）。
+
+若本地环境损坏或被清理，可执行：
 ```bash
 .\env\python.exe -m pip install -r apps\api\requirements.txt
 ```
@@ -271,4 +217,3 @@ L-Read/
 
 - 增大 `LLM_TIMEOUT_READ_SEC`（默认 600 秒）
 - 代码精读模块（module_04）超时后会自动截断上下文重试
-
