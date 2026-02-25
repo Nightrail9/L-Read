@@ -43,7 +43,7 @@
 ### 1. 获取项目
 
 ```bash
-git clone <your-repo-url> L-Read
+git clone https://github.com/Nightrail9/L-Read.git
 cd L-Read
 ```
 
